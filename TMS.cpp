@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <iomanip>
 
 using namespace std;
 
@@ -10,9 +11,26 @@ const int MAX_CUSTOMERS = 10;
 
 class TrainingCenter;
 class Customer;
+class EnrolledAthlete;
 
-void combSortTrainingCenters(TrainingCenter centers[], int numCenters);
-void combSort(string arr[], int n);
+class EnrolledAthlete
+{
+public:
+    string name;
+    int tuition_choice;
+    int hours;
+    int competition_choice;
+    int numCompetitions;
+    int plan_choice;
+    int plan_cost;
+    int total_cost;
+
+    EnrolledAthlete() {}
+    EnrolledAthlete(const string &name, int tuition_choice, int hours, int competition_choice, int numCompetitions, int plan_choice, int plan_cost, int total_cost)
+        : name(name), tuition_choice(tuition_choice), hours(hours),
+          competition_choice(competition_choice), numCompetitions(numCompetitions),
+          plan_choice(plan_choice), plan_cost(plan_cost), total_cost(total_cost) {}
+};
 
 class TrainingPlan
 {
@@ -33,6 +51,8 @@ public:
     TrainingPlan plans[MAX_PLANS];
     int numPlans;
     int beginner_cost, intermediate_cost, elite_cost, competition_cost, tuition_cost;
+    int numEnrolledAthletes;
+    EnrolledAthlete enrolledAthletes[MAX_ATHLETES];
 
     TrainingCenter() : numPlans(0) {}
     TrainingCenter(const string &name, const string &address, const TrainingPlan defaultPlans[],
@@ -43,6 +63,19 @@ public:
         for (int i = 0; i < numDefaultPlans; ++i)
         {
             addPlan(defaultPlans[i]);
+        }
+    }
+
+    void enrollAthlete(const EnrolledAthlete &athlete)
+    {
+        if (numEnrolledAthletes < MAX_ATHLETES)
+        {
+            enrolledAthletes[numEnrolledAthletes++] = athlete;
+            cout << "Athlete enrolled successfully." << endl;
+        }
+        else
+        {
+            cout << "Athlete limit reached!" << endl;
         }
     }
 
@@ -80,11 +113,11 @@ public:
         cout << "Plan Prices:" << endl;
         cout << "============" << endl;
         cout << "Beginner Plan Cost: "
-             << "£" << beginner_cost << endl;
+             << "$" << beginner_cost << endl;
         cout << "Intermediate Plan Cost: "
-             << "£" << intermediate_cost << endl;
+             << "$" << intermediate_cost << endl;
         cout << "Elite Plan Cost: "
-             << "£" << elite_cost << endl;
+             << "$" << elite_cost << endl;
 
         cout << "Press any key to continue..." << endl;
         cin.get();
@@ -111,17 +144,75 @@ public:
     int getCompetitionCost() const { return competition_cost; }
     int getTuitionCost() const { return tuition_cost; }
 
-    int numEnrolledAthletes;
-    string enrolledAthletes[MAX_ATHLETES];
-
-    void viewEnrolledAthletes() const
+    void viewEnrolledAthletes()
     {
+        int n = numEnrolledAthletes;
+        bool swapped = true;
+        int gap = n;
+
+        while (gap > 1 || swapped)
+        {
+            if (gap > 1)
+            {
+                gap = static_cast<int>(gap / 1.3);
+            }
+
+            swapped = false;
+
+            for (int i = 0; i + gap < n; ++i)
+            {
+                if (enrolledAthletes[i].name > enrolledAthletes[i + gap].name)
+                {
+                    swap(enrolledAthletes[i], enrolledAthletes[i + gap]);
+                    swapped = true;
+                }
+            }
+        }
         cout << endl
-             << "Enrolled Athletes:" << endl;
+             << "Enrolled Athletes (Sorted by Name):" << endl;
+        cout << setw(4) << "No." << setw(20) << "Name" << setw(15) << "Plan" << setw(20) << "Plan Cost" << setw(30) << "Competition" << setw(20) << "Total Score" << endl;
+        cout << setfill('-') << setw(110) << "" << setfill(' ') << endl;
+
         for (int i = 0; i < numEnrolledAthletes; i++)
         {
-            cout << i + 1 << ". " << enrolledAthletes[i] << endl;
+            const EnrolledAthlete &athlete = enrolledAthletes[i];
+
+            cout << setw(4) << i + 1;
+            cout << setw(20) << athlete.name;
+
+            cout << setw(15);
+            if (athlete.plan_choice == 1)
+            {
+                cout << "Beginner";
+            }
+            else if (athlete.plan_choice == 2)
+            {
+                cout << "Intermediate";
+            }
+            else if (athlete.plan_choice == 3)
+            {
+                cout << "Elite";
+            }
+
+            cout << setw(18) << "$" << athlete.plan_cost;
+
+            cout << setw(30);
+            if (athlete.competition_choice == 0)
+            {
+                cout << "Not in Competition";
+            }
+            else
+            {
+                cout << "In Competition";
+            }
+
+            cout << setw(17) << "$" << athlete.total_cost << endl;
         }
+
+        cout << endl
+             << "Press any key to continue...";
+        cin.ignore();
+        cin.get();
     }
 
     void deleteEnrolledAthlete()
@@ -251,8 +342,6 @@ public:
 
         cout << "Training center added successfully!" << endl;
         numCenters++;
-
-        combSortTrainingCenters(centers, numCenters);
     }
 
     void viewAllTrainingCenters(const TrainingCenter centers[], int numCenters)
@@ -272,11 +361,11 @@ public:
                 cout << "  " << centers[i].plans[j].name << " - " << centers[i].plans[j].time << endl;
             }
             cout << "Plan Prices:" << endl;
-            cout << "Beginner Plan Cost: £" << centers[i].getBeginnerCost() << endl;
-            cout << "Intermediate Plan Cost: £" << centers[i].getIntermediateCost() << endl;
-            cout << "Elite Plan Cost: £" << centers[i].getEliteCost() << endl;
-            cout << "Competition Plan Cost: £" << centers[i].getCompetitionCost() << endl;
-            cout << "Tuition Cost (per hour): £" << centers[i].getTuitionCost() << endl;
+            cout << "Beginner Plan Cost: $" << centers[i].getBeginnerCost() << endl;
+            cout << "Intermediate Plan Cost: $" << centers[i].getIntermediateCost() << endl;
+            cout << "Elite Plan Cost: $" << centers[i].getEliteCost() << endl;
+            cout << "Competition Plan Cost: $" << centers[i].getCompetitionCost() << endl;
+            cout << "Tuition Cost (per hour): $" << centers[i].getTuitionCost() << endl;
 
             cout << "---------------------------------" << endl;
         }
@@ -358,16 +447,24 @@ public:
     {
         total_price = 0;
         plan_choice = plan;
+        EnrolledAthlete athlete;
+
+        athlete.name = name;
+        athlete.plan_choice = plan_choice;
         if (plan_choice == 1)
         {
+            cout << "You will not be able to participate in the competition." << endl;
+            athlete.competition_choice = 0;
             int tuition_choice;
             cout << "Do you want private tuition? (1 for Yes, 2 for No): ";
             cin >> tuition_choice;
+            athlete.tuition_choice = tuition_choice;
             if (tuition_choice == 1)
             {
                 int hours;
                 cout << "Enter the number of hours for private coaching (max 5 hours): ";
                 cin >> hours;
+                athlete.hours = hours;
                 if (hours <= 5)
                 {
                     total_price += center.getTuitionCost() * hours;
@@ -379,18 +476,22 @@ public:
             }
             cout << "You have chosen the Beginner plan." << endl;
             total_price += center.getBeginnerCost();
+            athlete.plan_cost = center.getBeginnerCost();
+            athlete.total_cost = total_price;
         }
         else if (plan_choice == 2 || plan_choice == 3)
         {
             int competition_choice;
             cout << "Do you want to participate in a competition? (1 for Yes, 2 for No): ";
             cin >> competition_choice;
+            athlete.competition_choice = competition_choice;
 
             if (competition_choice == 1)
             {
                 int numCompetitions;
                 cout << "How many competitions do you want to join? ";
                 cin >> numCompetitions;
+                athlete.numCompetitions = numCompetitions;
                 total_price += center.getCompetitionCost() * numCompetitions;
             }
 
@@ -400,11 +501,13 @@ public:
             int tuition_choice;
             cout << "Do you want private tuition? (1 for Yes, 2 for No): ";
             cin >> tuition_choice;
+            athlete.tuition_choice = tuition_choice;
             if (tuition_choice == 1)
             {
                 int hours;
                 cout << "Enter the number of hours for private coaching (max 5 hours): ";
                 cin >> hours;
+                athlete.hours = hours;
                 if (hours <= 5)
                 {
                     total_price += center.getTuitionCost() * hours;
@@ -419,11 +522,13 @@ public:
             {
                 cout << "You have chosen the Intermediate plan." << endl;
                 total_price += center.getIntermediateCost();
+                athlete.plan_cost = center.getIntermediateCost();
             }
             else if (plan_choice == 3)
             {
                 cout << "You have chosen the Elite plan." << endl;
                 total_price += center.getEliteCost();
+                athlete.plan_cost = center.getEliteCost();
             }
         }
         else
@@ -431,28 +536,11 @@ public:
             cout << "Invalid choice. Please try again." << endl;
             choosePlan(center, plan_choice);
         }
-        cout << "Total price: " << total_price << endl;
-    }
 
-    void viewData(const TrainingCenter &center) const
-    {
-        system("clear");
-        cout << "Customer name: " << name << endl;
-        cout << "Choices made: ";
-        if (plan_choice == 1)
-        {
-            cout << "Beginner plan";
-        }
-        else if (plan_choice == 2)
-        {
-            cout << "Intermediate plan";
-        }
-        else if (plan_choice == 3)
-        {
-            cout << "Elite plan";
-        }
-        cout << endl;
-        cout << "Total price: " << total_price << endl;
+        athlete.total_cost += total_price;
+        center.enrollAthlete(athlete);
+
+        cout << "Total price: " << athlete.total_cost << endl;
     }
 
     void weight()
@@ -524,24 +612,7 @@ private:
     int numCenters;
 
 public:
-    TrainingSystem() : numCenters(0)
-    {
-        centers[numCenters].name = "Center 1";
-        centers[numCenters].address = "Address 1";
-
-        TrainingPlan defaultPlans1[] = {
-            TrainingPlan("Beginner", "Mon-Wed-Fri 9:00-10:00"),
-            TrainingPlan("Intermediate", "Tue-Thu 18:00-19:30"),
-            TrainingPlan("Elite", "Mon-Fri 16:00-18:00")};
-
-        for (int i = 0; i < sizeof(defaultPlans1) / sizeof(defaultPlans1[0]); ++i)
-        {
-            centers[numCenters].addPlan(defaultPlans1[i]);
-        }
-
-        centers[numCenters].setPlanCosts(50, 75, 100, 120, 20);
-        numCenters++;
-    }
+    TrainingSystem() : numCenters(0) {}
 
     void start()
     {
@@ -622,6 +693,10 @@ public:
         if (numCenters == 0)
         {
             cout << "No training centers available. Please contact the administrator." << endl;
+            cout << endl
+                 << "Press any key to continue..." << endl;
+            cin.ignore();
+            cin.get();
             return;
         }
 
@@ -664,10 +739,6 @@ public:
                     cout << "Choose a plan (1 for Beginner, 2 for Intermediate, 3 for Elite): ";
                     cin >> plan_choice;
                     customer.choosePlan(selectedCenter, plan_choice);
-
-                    selectedCenter.enrolledAthletes[selectedCenter.numEnrolledAthletes++] = customer.name;
-
-                    combSort(selectedCenter.enrolledAthletes, selectedCenter.numEnrolledAthletes);
                 }
                 else if (choice == 2)
                 {
@@ -738,54 +809,4 @@ int main()
     system.start();
 
     return 0;
-}
-
-void combSortTrainingCenters(TrainingCenter centers[], int numCenters)
-{
-    int gap = numCenters;
-    bool swapped = true;
-
-    while (gap > 1 || swapped)
-    {
-        if (gap > 1)
-        {
-            gap = static_cast<int>(gap / 1.3);
-        }
-
-        swapped = false;
-
-        for (int i = 0; i + gap < numCenters; ++i)
-        {
-            if (centers[i].name > centers[i + gap].name)
-            {
-                swap(centers[i], centers[i + gap]);
-                swapped = true;
-            }
-        }
-    }
-}
-
-void combSort(string arr[], int n)
-{
-    int gap = n;
-    bool swapped = true;
-
-    while (gap > 1 || swapped)
-    {
-        if (gap > 1)
-        {
-            gap = static_cast<int>(gap / 1.3);
-        }
-
-        swapped = false;
-
-        for (int i = 0; i + gap < n; ++i)
-        {
-            if (arr[i] > arr[i + gap])
-            {
-                swap(arr[i], arr[i + gap]);
-                swapped = true;
-            }
-        }
-    }
 }
